@@ -1,0 +1,39 @@
+{
+  "name": "kodesblog-backend",
+  "version": "1.0.0",
+  "description": "Projet CDA Node4",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon --exec babel-node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Skodelowski/kodesblog-backend.git"
+  },
+  "keywords": [],
+  "author": "Cindy Canévet",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "bcrypt": "^5.1.0",
+    "connect-mongo": "^4.6.0",
+    "cors": "^2.8.5",
+    "dateformat": "^5.0.3",
+    "dotenv": "^16.0.3",
+    "express": "^4.17.1",
+    "jsonwebtoken": "^9.0.0",
+    "mongoose": "^6.8.3"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.13",
+    "babel-cli": "^6.26.0",
+    "nodemon": "^2.0.20",
+    "prettier": "^2.8.1",
+    "morgan": "^1.10.0"
+  },
+  "bugs": {
+    "url": "https://github.com/Skodelowski/kodesblog-backend/issues"
+  },
+  "homepage": "https://github.com/Skodelowski/kodesblog-backend#readme"
+}
