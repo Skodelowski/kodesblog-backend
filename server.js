@@ -29,7 +29,7 @@ mongoose
 
 async function init() {
   dotenv.config()
-  const { APP_HOSTNAME, APP_PORT, NODE_ENV } = process.env
+  const { APP_HOSTNAME, APP_PORT, NODE_ENV, APP_SECRET } = process.env
   const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
   const app = express()
@@ -51,7 +51,7 @@ async function init() {
   // ==========
   // App routers
   // ==========
-  
+
   app.options('*', cors())
   app.use(cors())
   app.use('/', routes)
