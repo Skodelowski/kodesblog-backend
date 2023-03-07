@@ -22,19 +22,31 @@ const router = express.Router()
 
 // Controllers
 import UserController from '../controllers/UserController.js'
+import CategoryController from '../controllers/CategoryController.js'
 
 //* Authentication
 router.post('/login', UserController.login)
+router.post('/users/add', UserController.addUser)
 
 //* Users
 router.get('/users', auth, UserController.getAllUsers)
 router.get('/user/:id', auth, UserController.getUserById)
-router.post('/users/add', UserController.addUser)
 router.put('/users/:id/edit', auth, UserController.updateUser)
 router.delete('/users/:id/delete', auth, UserController.deleteUserById)
 
-// Fake data
+//* Categories
+router.get('/categories', CategoryController.getAllCategories)
+router.get('/categories/:slug', CategoryController.getCategory)
+router.post('/categories/add', auth, CategoryController.addCategory)
+router.delete(
+  '/categories/:slug/delete',
+  auth,
+  CategoryController.deleteCategory,
+)
+
+// Import data
 router.post('/users/add-fakes', UserController.importFakeUsers)
+router.post('/categories/add-base', CategoryController.importCategories)
 router.delete('/users/delete-all', UserController.deleteAllUsers)
 
 router.get('/', function (req, res) {
