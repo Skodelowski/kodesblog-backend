@@ -8,6 +8,7 @@ import { fileURLToPath } from 'url'
 import mongoose from 'mongoose'
 import cors from 'cors'
 import logger from 'morgan'
+import multer from 'multer'
 
 import routes from './src/routes/routes.js'
 
@@ -40,6 +41,7 @@ async function init() {
 
   app.use(express.urlencoded({ extended: false }))
   app.use(express.json())
+  app.use(express.static('public'))
   app.use(
     logger('dev', {
       skip: function (req, res) {
@@ -47,6 +49,21 @@ async function init() {
       },
     }),
   )
+
+  // ==========
+  // Storage initialization
+  // ==========
+
+  var storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, 'uploads')
+    },
+    filename: (req, file, cb) => {
+      cb(null, file.fieldname + '-' + Date.now())
+    },
+  })
+
+  var upload = multer({ storage: storage })
 
   // ==========
   // App routers

@@ -83,6 +83,20 @@ const getUserById = (req, res) => {
   res.status(200).send({ status: 'Route en cours : getUsers', userId: id })
 }
 
+//* GET/ Get user's posts liked
+const getPostsLiked = async (req, res) => {
+  const { id } = req.params
+  PostLikeModel.find({ user: id })
+    .then((posts) => {
+      res.status(200).send({ message: 'Posts found.', posts: posts })
+    })
+    .catch((err) => {
+      res
+        .status(500)
+        .send({ message: 'An error has occurred.', error: err.message })
+    })
+}
+
 //* POST/ Add a new user
 // (sign up, or added by an admin)
 const addUser = async (req, res) => {
@@ -190,6 +204,7 @@ export default {
   login,
   getAllUsers,
   getUserById,
+  getPostsLiked,
   addUser,
   updateUser,
   deleteUserById,

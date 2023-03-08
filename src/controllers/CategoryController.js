@@ -1,6 +1,8 @@
 import CategoryModel from '../Models/Category.js'
+import PostModel from '../Models/Post.js'
 import baseCategories from '../../data/categories.js'
 
+//* GET/ Get all categories
 const getAllCategories = async (req, res) => {
   CategoryModel.find()
     .then((categories) => {
@@ -14,6 +16,7 @@ const getAllCategories = async (req, res) => {
     })
 }
 
+//* GET/ Get a category by its slug
 const getCategory = async (req, res) => {
   const { slug } = req.params
   CategoryModel.findOne({ slug })
@@ -31,20 +34,112 @@ const getCategory = async (req, res) => {
     })
 }
 
+//* GET/ Get all the posts linked to a category (by slug)
+const getPostsByCategory = async (req, res) => {
+  const { slug } = req.params
+  CategoryModel.findOne({ slug }).then((category) => {
+    PostModel.find({ category: category.id })
+      .then((posts) => {
+        res.status(200).send({
+          message: `Posts of catageory ${category.title} found.`,
+          posts: posts,
+        })
+      })
+      .catch((err) => {
+        res
+          .status(500)
+          .send({ message: 'An error has occurred.', error: err.message })
+      })
+  })
+}
+
+//* POST/ Add a new category
 const addCategory = async (req, res) => {
+  const { title, parentCategoryTitle, slug } = req.body
   if (req.user.isAdmin) {
-    //...
+    // ? Improvement : make the research case-insensitive
+    CategoryModel.findOne({ title: parentCategoryTitle })
+      .then((parentCat) => {
+        let parentId = parentCat && parentCat._id ? parentCat._id : null
+        const categoryData = {
+          title: title,
+          parentCategory: parentId,
+          slug: slug,
+        }
+
+        const Category = new CategoryModel(categoryData)
+
+        Category.save()
+          .then((cat) => {
+            if (!cat.parentCategory) {
+              CategoryModel.findOneAndUpdate(
+                { _id: cat._id },
+                { parentCategory: cat._id },
+                { new: true },
+              )
+                .then((finalCat) => {
+                  res.status(200).send({
+                    message: 'Category successfully added !',
+                    category: finalCat,
+                  })
+                })
+                .catch((err) => {
+                  res.status(500).send({
+                    message:
+                      'An error has occurred in self-assignation as parent category.',
+                    error: err.message,
+                  })
+                })
+            } else {
+              res.status(200).send({
+                message: 'Category successfully added !',
+                category: cat,
+              })
+            }
+          })
+          .catch((err) => {
+            res
+              .status(500)
+              .send({ message: 'An error has occurred.', error: err.message })
+            return
+          })
+      })
+      .catch((err) => {
+        res
+          .status(500)
+          .send({ message: 'An error has occurred.', error: err.message })
+        return
+      })
+  } else {
+    res.status(403).send({ message: 'Unauthorized operation. (Admin)' })
   }
-  res.send({ message: 'WIP' })
 }
 
+//! DELETE/ Delete a category (Admin only)
 const deleteCategory = (req, res) => {
+  const { slug } = req.params
   if (req.user.isAdmin) {
-    //...
+    CategoryModel.findOneAndDelete({ slug })
+      .then(() => {
+        res.status(200).send({ message: 'Category successfully deleted.' })
+        return
+      })
+      .catch((err) => {
+        res
+          .status(500)
+          .send({ message: 'An error has occurred.', error: err.message })
+        return
+      })
+  } else {
+    return res.status(403).send({ message: 'Unauthorized.' })
   }
-  res.send({ message: 'WIP' })
 }
 
+/**
+ * Temporary functions (dev tests)
+ */
+
+//* Default values
 const importCategories = async (req, res) => {
   let categories = []
   // Data to send
@@ -89,6 +184,7 @@ const importCategories = async (req, res) => {
 export default {
   getAllCategories,
   getCategory,
+  getPostsByCategory,
   addCategory,
   deleteCategory,
   importCategories,

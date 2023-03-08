@@ -1,6 +1,3 @@
-// Category Model
-
-// name (String), upperCategory (Number, ObjectID, default 0)
 // ==========
 // Category Model
 // ==========
@@ -15,7 +12,7 @@ const CategorySchema = new Schema({
     ref: 'categories',
     default: null,
   },
-  slug: { type: String, unique: true },
+  slug: { type: String, require: true, unique: true },
 })
 
 const CategoryModel = model('categories', CategorySchema)
