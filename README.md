@@ -30,3 +30,5 @@ _Les mots de passe sont en clair pour le fichier de base pour pouvoir utiliser f
 
 **Categories**
 `(http...)/categories/add-base`
+
+Dossier à rajouter à la racine pour les images : public/uploads
