@@ -9,7 +9,7 @@ const ImageSchema = new Schema({
   name: String,
   description: String,
   img: {
-    data: Buffer,
+    path: String,
     contentType: String
   }
 })

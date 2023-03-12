@@ -71,16 +71,15 @@ const getAllUsers = async (req, res) => {
 }
 
 //* GET/ Get user informations by its id
-const getUserById = (req, res) => {
+const getUserById = async (req, res) => {
   const { id } = req.params
-  UserModel.findOne({ _id: id })
+  UserModel.findById(id)
     .then((user) => {
       res.status(200).send({ message: 'User found', user: user })
     })
     .catch((err) => {
       res.status(500).send({ message: 'Error', message: err.message })
     })
-  res.status(200).send({ status: 'Route en cours : getUsers', userId: id })
 }
 
 //* GET/ Get user's posts liked

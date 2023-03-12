@@ -1,27 +1,24 @@
-// ROUTES
-
-// User
-// - Read Posts (GET)
-// - Create & Update Post (his/her post)
-// - Favorites
-// (optionnal)
-// - Write Comment
-
-// Admin
-// - Create, Update & Delete Post (all)
-// (optionnal)
-// - Create, Update & Delete Comment (all)
-// - Create, Update & Delete Category (What about children categories when parents ones are deleted ?)
-
-// Errors
-
 import express from 'express'
 import auth from '../middlewares/auth.js'
 import createUser from '../middlewares/create-user.js'
 import multer from 'multer'
-import cors from 'cors'
 const router = express.Router()
-const upload = multer({ dest: '../../public/uploads/' })
+
+// ==========
+// Storage initialization
+// ==========
+
+var storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, './public/uploads/')
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + '-' + file.originalname)
+  },
+})
+
+var upload = multer({ storage: storage })
+var imageFile = upload.single('photo')
 
 // Controllers
 import UserController from '../controllers/UserController.js'
@@ -44,12 +41,7 @@ router.delete('/users/:id/delete', auth, UserController.deleteUserById)
 router.get('/categories', CategoryController.getAllCategories)
 router.get('/categories/:slug', CategoryController.getCategory)
 router.get('/categories/:slug/posts', CategoryController.getPostsByCategory)
-router.post(
-  '/categories/add',
-  upload.single('image'),
-  auth,
-  CategoryController.addCategory,
-)
+router.post('/categories/add', auth, CategoryController.addCategory)
 router.delete(
   '/categories/:slug/delete',
   auth,
@@ -60,7 +52,7 @@ router.delete(
 router.get('/posts/all', auth, PostController.getAllPosts)
 router.get('/posts/:user', auth, PostController.getUserPosts)
 router.get('/posts/:id', auth, PostController.getPostById)
-router.post('/posts/add', auth, PostController.addPost)
+router.post('/posts/add', auth, imageFile, PostController.addPost)
 router.put('/posts/:id/edit', auth, PostController.updatePost)
 router.put('/posts/:id/like', auth, PostController.toggleLike)
 router.delete('/posts/:id/delete', auth, PostController.deletePost)

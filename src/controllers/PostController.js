@@ -2,7 +2,7 @@ import PostModel from '../Models/Post.js'
 import UserModel from '../Models/User.js'
 import ImageModel from '../Models/Image.js'
 import PostLikeModel from '../Models/PostLike.js'
-import fs from 'fs'
+import { verifyPostContent } from '../utils/post.js'
 
 //* GET/ Get all posts
 const getAllPosts = async (req, res) => {
@@ -55,30 +55,55 @@ const getUserPosts = async (req, res) => {
 
 //* POST/ Create a new post
 const addPost = async (req, res) => {
-  const { authorId, title, content, imageName, imageDesc, category, tags } =
+  const { author, title, content, imageName, imageDesc, category, tags } =
     req.body
-  const image = {
-    name: imageName,
-    description: imageDesc,
-    img: {
-      data: fs.readFileSync(
-        path.join(__dirname + '/public/uploads/' + req.file.filename),
-      ),
-      contentType: 'image/png',
-    },
-  }
-  const newImage = new ImageModel(image)
-  newImage.save().then((dataImage) => {
-    let imageId = dataImage && dataImage._id ? dataImage._id : null
-    const Post = new PostModel({
-      author: authorId,
-      title: title,
-      content: content,
-      image: imageId,
-      category: category,
-      tags: tags,
+
+  const url = req.protocol + '://' + req.get('host')
+
+  let postDataIsVerified = verifyPostContent(req.body, req.file)
+
+  if (!postDataIsVerified.error) {
+    const image = {
+      name: imageName,
+      description: imageDesc,
+      img: {
+        path: url + '/public/uploads/' + req.file.filename,
+        contentType: req.file.mimetype,
+      },
+    }
+    const newImage = new ImageModel(image)
+    newImage.save().then((dataImage) => {
+      let imagePath =
+        dataImage && dataImage.img.path ? dataImage.img.path : null
+      const Post = new PostModel({
+        author: author,
+        title: title,
+        content: content,
+        image: imagePath,
+        category: category,
+        tags: tags,
+      })
+
+      Post.save()
+        .then((postData) => {
+          res
+            .status(200)
+            .send({ message: 'Post created successfully !', post: postData })
+        })
+        .catch((err) => {
+          console.log(err.message)
+          res.status(500).send({
+            message:
+              'An error has occurred, please verify that all required inputs are filled.',
+            error: err.message,
+          })
+        })
     })
-  })
+  } else {
+    res.status(500).send({
+      message: postDataIsVerified.message,
+    })
+  }
 }
 
 //* PUT/ Update an existing post (if original author or admin)
@@ -101,21 +126,72 @@ const updatePost = async (req, res) => {
 }
 
 //* PUT/ Increment the likes counter of a post (and vice versa)
-const toggleLike = async (res, req) => {
-  const { postId } = req.params
+const toggleLike = async (req, res) => {
+  const { id } = req.params
   const userId = req.user.id
-  PostLikeModel.find({ user: userId, post: postId })
+  PostLikeModel.findOne({ user: userId, post: id })
     .then((post) => {
       if (post) {
+        let count = post.like ? -1 : 1
+        // Link between user & post exists
         PostModel.findOneAndUpdate(
-          { _id: post.id },
-          { likeCount: post.likeCount-- },
+          { _id: post.post },
+          { $inc: { likeCount: count } },
+          { new: true },
         )
+          .then((updatedPost) => {
+            // User already liked the post
+            PostLikeModel.findOneAndUpdate(
+              { post: post.post },
+              { like: !post.like },
+            )
+              .then((data) => {
+                res
+                  .status(200)
+                  .send({ message: 'Like modified', data: updatedPost })
+              })
+              .catch((err) => {
+                res.status(500).send({
+                  message: 'Error when updating Like/Post',
+                  data: err.message,
+                })
+              })
+          })
+          .catch((err) => {
+            res.status(500).send({
+              message: 'Error when updating Post',
+              data: err.message,
+            })
+          })
       } else {
-        PostModel.findOneAndUpdate(
-          { _id: post.id },
-          { likeCount: post.likeCount++ },
-        )
+        // Link between user & post does not exist yet
+        const PostLikeRelation = new PostLikeModel({ user: userId, post: id })
+
+        PostLikeRelation.save()
+          .then((postLike) => {
+            PostModel.findOneAndUpdate(
+              { _id: postLike.post },
+              { $inc: { likeCount: 1 } },
+              { new: true },
+            )
+              .then((updatedPost) => {
+                res
+                  .status(200)
+                  .send({ message: 'Like added', data: updatedPost })
+              })
+              .catch((err) => {
+                res.status(500).send({
+                  message: 'Error when updating Post',
+                  data: err.message,
+                })
+              })
+          })
+          .catch((err) => {
+            res.status(500).send({
+              message: 'Error when saving the relation Like/Post',
+              data: err.message,
+            })
+          })
       }
     })
     .catch((err) => {
