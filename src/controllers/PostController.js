@@ -18,7 +18,7 @@ const getAllPosts = async (req, res) => {
     })
 }
 
-//* GET/ Get a posts by its id
+//* GET/ Get a post by its id
 const getPostById = async (req, res) => {
   const { id } = req.params
   PostModel.findById(id)
@@ -26,6 +26,7 @@ const getPostById = async (req, res) => {
       res.status(200).send({ message: 'Post found !', post: post })
     })
     .catch((err) => {
+      console.log(err.message)
       res
         .status(500)
         .send({ message: 'An error has occurred', error: err.message })
@@ -108,7 +109,24 @@ const addPost = async (req, res) => {
 
 //* PUT/ Update an existing post (if original author or admin)
 const updatePost = async (req, res) => {
+  const url = req.protocol + '://' + req.get('host')
   if (req.user.id == req.body.author || req.user.isAdmin) {
+    if (req.file) {
+      const image = {
+        name: imageName,
+        description: imageDesc,
+        img: {
+          path: url + '/public/uploads/' + req.file.filename,
+          contentType: req.file.mimetype,
+        },
+      }
+      const newImage = new ImageModel(image)
+      newImage
+        .save()
+        .then((res) => console.log(res))
+        .catch((err) => console.log(err))
+    }
+
     PostModel.findOneAndUpdate({ _id: req.params.id }, req.body, {
       new: true,
     })

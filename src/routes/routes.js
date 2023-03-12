@@ -51,9 +51,9 @@ router.delete(
 //* Posts
 router.get('/posts/all', auth, PostController.getAllPosts)
 router.get('/posts/:user', auth, PostController.getUserPosts)
-router.get('/posts/:id', auth, PostController.getPostById)
+router.get('/posts/post/:id', auth, PostController.getPostById)
 router.post('/posts/add', auth, imageFile, PostController.addPost)
-router.put('/posts/:id/edit', auth, PostController.updatePost)
+router.put('/posts/:id/edit', auth, imageFile, PostController.updatePost)
 router.put('/posts/:id/like', auth, PostController.toggleLike)
 router.delete('/posts/:id/delete', auth, PostController.deletePost)
 
