@@ -34,6 +34,24 @@ const getCategory = async (req, res) => {
     })
 }
 
+//* GET/ Get a category by its id
+const getCategoryById = async (req, res) => {
+  const { id } = req.params
+  CategoryModel.findById(id)
+    .then((cat) => {
+      CategoryModel.findById(cat.parentCategory).then((parent) => {
+        res
+          .status(200)
+          .send({ message: 'Category found !', category: cat, parent: parent })
+      })
+    })
+    .catch((err) => {
+      res
+        .status(500)
+        .send({ message: 'An error has occurred', error: err.message })
+    })
+}
+
 //* GET/ Get all the posts linked to a category (by slug)
 const getPostsByCategory = async (req, res) => {
   const { slug } = req.params
@@ -184,6 +202,7 @@ const importCategories = async (req, res) => {
 export default {
   getAllCategories,
   getCategory,
+  getCategoryById,
   getPostsByCategory,
   addCategory,
   deleteCategory,

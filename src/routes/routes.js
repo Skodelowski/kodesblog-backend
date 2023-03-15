@@ -40,6 +40,7 @@ router.delete('/users/:id/delete', auth, UserController.deleteUserById)
 //* Categories
 router.get('/categories', CategoryController.getAllCategories)
 router.get('/categories/:slug', CategoryController.getCategory)
+router.get('/categories/id/:id', CategoryController.getCategoryById)
 router.get('/categories/:slug/posts', CategoryController.getPostsByCategory)
 router.post('/categories/add', auth, CategoryController.addCategory)
 router.delete(
